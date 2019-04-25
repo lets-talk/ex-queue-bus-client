@@ -31,7 +31,28 @@ config :ex_aws,
   secret_access_key:  ["${AWS_SECRET_KEY}", :instance_role],
   region: "us-west-1"
 
-config :ex_queue_bus_client, queue: "${SQS_QUEUE_NAME}"
+config :ex_queue_bus_client,
+    queue: "${SQS_QUEUE_NAME}",
+    event_handler: MyApp.EventHandler
+```
+
+Event handler is a module where you define how to deal with different incoming
+events. For this purpose you should use `handle_event/3` function which must
+return `:process` or `:skip` it will let library know whether remove message
+from queue or leave it alive waiting.
+
+*EventHandler.ex*
+
+```elixir
+defmodule MyApp.EventHandler do
+
+    def handle_event(:important_event, :my_service, %{members_count: 100})
+        :process
+    end
+
+    def handle_event(_, _, _), do: :skip
+
+end
 ```
 
 ## Usage
