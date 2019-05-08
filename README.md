@@ -1,6 +1,8 @@
 Ex Queue Bus Client
 ===================
 
+[![CircleCI](https://circleci.com/gh/lets-talk/ex-queue-bus-client.svg?style=svg)](https://circleci.com/gh/lets-talk/ex-queue-bus-client)
+
 This elixir library helps microservices communicate with each other through
 some external message queue service like AWS SQS. It is designed under the
 back pressure pattern and uses GenStage under the hood.
