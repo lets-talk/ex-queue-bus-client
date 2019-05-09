@@ -15,8 +15,12 @@ jobs:
       - checkout
 
       # specify any bash command here prefixed with `run: `
-      - run: mix local.hex --force
-      - run: mix local.rebar --force
+      - run: 
+          name: Install Hex locally
+          command: mix local.hex --force
+      - run: 
+          name: Fetch rebar
+          command: mix local.rebar --force
 
       - restore_cache:  # restores saved mix cache
       # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
@@ -28,7 +32,11 @@ jobs:
           keys:
             - v1-build-cache-{{ .Branch }}
             - v1-build-cache
-      - run: mix do deps.get, compile  # get updated dependencies & compile them
+
+      - run:
+          name: Fetch dependencies and compile'em
+          command: mix do deps.get, compile
+
       - save_cache:  # generate and store mix cache
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths: "deps"
@@ -45,6 +53,9 @@ jobs:
           key: v1-build-cache
           paths: "_build"
 
-      - run: mix test --exclude integration
+      - run:
+          name: Run test without integration
+          command: mix test --exclude integration
+
       - store_test_results:
           path: _build/test/lib/ex_queue_bus_client
