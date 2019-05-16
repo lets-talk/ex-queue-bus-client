@@ -12,7 +12,7 @@ Add the following to your dependencies in mix file:
 ```elixir
 def deps do
     [
-        {:ex_queue_bus_client, git: "https://github.com/lets-talk/ex-queue-bus-client.git", tag: "0.1"}
+        {:ex_queue_bus_client, git: "https://github.com/lets-talk/ex-queue-bus-client.git", tag: "0.1.1"}
     ]
 end
 ```

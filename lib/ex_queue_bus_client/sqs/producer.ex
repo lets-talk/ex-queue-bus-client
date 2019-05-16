@@ -63,4 +63,12 @@ defmodule ExQueueBusClient.SQS.Producer do
 
     {:noreply, messages, %{state | demand: new_demand}}
   end
+
+  @doc """
+  This is a workaround to avoid failure from ssl_closed
+  message after upgrade OTP.
+  """
+  def handle_info({:ssl_closed, _}, state) do
+    {:noreply, [], state}
+  end
 end
