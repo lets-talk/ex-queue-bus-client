@@ -6,33 +6,44 @@ defmodule ExQueueBusClient.SQS.ProducerTest do
 
   @queue "ExQueueBusClient-SQS-ProducerTest"
 
-  setup do
-    queue = "#{@queue}-#{:rand.uniform(1000)}"
-    messages = ["Hi!", "Bye!"]
-    queue |> SQS.create_queue() |> ExAws.request()
-
-    for m <- messages do
-      queue |> SQS.send_message(m) |> ExAws.request()
+  describe "when receives :ssl_closed message" do
+    test "it returns no events and same state" do
+      state = %{demand: 20}
+      assert {:noreply, [], ^state} =
+        Producer.handle_info({:ssl_closed, {:a, :b}}, state)
     end
-
-    on_exit(fn ->
-      queue |> SQS.delete_queue() |> ExAws.request()
-    end)
-
-    %{queue: queue, messages: messages}
   end
 
-  @tag :integration
-  test "receives all messages", %{messages: expected_messages, queue: queue} do
-    {:ok, producer} = Producer.start_link([queue_name: queue])
+  describe "when handles demand" do
+    setup do
+      queue = "#{@queue}-#{:rand.uniform(1000)}"
+      messages = ["Hi!", "Bye!"]
+      queue |> SQS.create_queue() |> ExAws.request()
 
-    messages =
-      [producer]
-      |> GenStage.stream()
-      |> Enum.take(2)
-      |> Enum.map(fn m -> m.body end)
-      |> Enum.sort()
+      for m <- messages do
+        queue |> SQS.send_message(m) |> ExAws.request()
+      end
 
-    assert messages == Enum.sort(expected_messages)
+      on_exit(fn ->
+        queue |> SQS.delete_queue() |> ExAws.request()
+      end)
+
+      %{queue: queue, messages: messages}
+    end
+
+
+    @tag :integration
+    test "it receives all messages", %{messages: expected_messages, queue: queue} do
+      {:ok, producer} = Producer.start_link([queue_name: queue])
+
+      messages =
+        [producer]
+        |> GenStage.stream()
+        |> Enum.take(2)
+        |> Enum.map(fn m -> m.body end)
+        |> Enum.sort()
+
+      assert messages == Enum.sort(expected_messages)
+    end
   end
 end
