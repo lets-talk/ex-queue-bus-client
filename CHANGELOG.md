@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-## [unreleased]
+## Release [0.2.0] - 16.05.2019
 ### Added
 - CircleCI integration.
 
