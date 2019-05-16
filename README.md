@@ -1,6 +1,8 @@
 Ex Queue Bus Client
 ===================
 
+[![CircleCI](https://circleci.com/gh/lets-talk/ex-queue-bus-client.svg?style=svg)](https://circleci.com/gh/lets-talk/ex-queue-bus-client)
+
 This elixir library helps microservices communicate with each other through
 some external message queue service like AWS SQS. It is designed under the
 back pressure pattern and uses GenStage under the hood.
@@ -12,7 +14,7 @@ Add the following to your dependencies in mix file:
 ```elixir
 def deps do
     [
-        {:ex_queue_bus_client, git: "https://github.com/lets-talk/ex-queue-bus-client.git", tag: "0.1.1"}
+        {:ex_queue_bus_client, git: "https://github.com/lets-talk/ex-queue-bus-client.git", tag: "0.2.0"}
     ]
 end
 ```

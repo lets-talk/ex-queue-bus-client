@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## Release [0.2.0] - 16.05.2019
+### Added
+- CircleCI integration.
+
 ## Hotfix [0.1.1] - 15.05.2019
 ### Fixed
 - OTP21 `:ssl_closed` message handling in Producer.
