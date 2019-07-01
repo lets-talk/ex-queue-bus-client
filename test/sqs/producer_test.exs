@@ -9,8 +9,7 @@ defmodule ExQueueBusClient.SQS.ProducerTest do
   describe "when receives :ssl_closed message" do
     test "it returns no events and same state" do
       state = %{demand: 20}
-      assert {:noreply, [], ^state} =
-        Producer.handle_info({:ssl_closed, {:a, :b}}, state)
+      assert {:noreply, [], ^state} = Producer.handle_info({:ssl_closed, {:a, :b}}, state)
     end
   end
 
@@ -18,29 +17,53 @@ defmodule ExQueueBusClient.SQS.ProducerTest do
     setup do
       queue = "#{@queue}-#{:rand.uniform(1000)}"
       messages = ["Hi!", "Bye!"]
+
+      attributes = [
+        %{name: "provider", data_type: :string, value: "letstalk"},
+        %{name: "event", data_type: :string, value: "message-create"}
+      ]
+
       queue |> SQS.create_queue() |> ExAws.request()
 
       for m <- messages do
-        queue |> SQS.send_message(m) |> ExAws.request()
+        queue |> SQS.send_message(m, message_attributes: attributes) |> ExAws.request()
       end
 
       on_exit(fn ->
         queue |> SQS.delete_queue() |> ExAws.request()
       end)
 
-      %{queue: queue, messages: messages}
+      %{queue: queue, messages: messages, attrs: attributes}
     end
 
-
     @tag :integration
-    test "it receives all messages", %{messages: expected_messages, queue: queue} do
-      {:ok, producer} = Producer.start_link([queue_name: queue])
+    test "it receives all messages", %{messages: messages, queue: queue} do
+      {:ok, producer} = Producer.start_link(queue_name: queue)
+
+      expected_messages =
+        for m <- messages, into: [] do
+          {
+            m,
+            %{
+              "provider" => "letstalk",
+              "event" => "message-create"
+            }
+          }
+        end
 
       messages =
         [producer]
         |> GenStage.stream()
         |> Enum.take(2)
-        |> Enum.map(fn m -> m.body end)
+        |> Enum.map(fn m ->
+          {
+            m.body,
+            %{
+              "provider" => m.message_attributes["provider"].value,
+              "event" => m.message_attributes["event"].value
+            }
+          }
+        end)
         |> Enum.sort()
 
       assert messages == Enum.sort(expected_messages)
