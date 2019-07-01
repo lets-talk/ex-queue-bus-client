@@ -11,7 +11,7 @@ defmodule ExQueueBusClient.SQS.Consumer do
       sqs: opts[:sqs] || SQS
     ]
 
-    GenStage.start_link(__MODULE__, init_opts, [name: opts[:name] || __MODULE__])
+    GenStage.start_link(__MODULE__, init_opts, name: opts[:name] || __MODULE__)
   end
 
   def init(queue: queue_name, producers: producers, sqs: sqs) do
@@ -24,33 +24,53 @@ defmodule ExQueueBusClient.SQS.Consumer do
     {:consumer, state, subscribe_to: subscriptions}
   end
 
+  @doc """
+  Handle events received from producer and do not reply.
+  """
   def handle_events(messages, _from, state) do
     handle_messages(messages, state)
     {:noreply, [], state}
   end
 
+  # Handle received messages processing each of them and
+  # delete from queue in case of :process response.
+  @spec handle_messages([map], map) :: term
   defp handle_messages(messages, state) do
     messages
     |> Enum.map(&process_message/1)
-    |> Enum.filter(fn({s, _}) -> s == :process end)
-    |> Enum.map(fn({_, m}) -> m end)
+    |> Enum.filter(fn {s, _} -> s == :process end)
+    |> Enum.map(fn {_, m} -> m end)
     |> (&state.sqs.delete_message_batch(state.queue, &1)).()
   end
 
+  @doc """
+  Process received message, run provided callback for handling it.
+  it returns tuple with handling result and following action.
+  """
+  @spec process_message(map) :: {:process, map} | {:skip | map}
   def process_message(message) do
-    %{"event" => event, "provider" => provider, "body" => body} = Poison.decode!(message.body)
-    provider = String.to_existing_atom(provider)
+    body = Poison.decode!(message.body)
 
-    case @event_handler.handle_event(event, provider, body) do
-      :process -> {:process, message}
-      :skip -> {:skip, message}
+    case message.message_attributes do
+      %{"provider" => %{value: provider}, "event" => %{value: event}} ->
+        event
+        |> @event_handler.handle_event(provider, body)
+        |> post_process_message(message)
+
+      _ ->
+        "unknown-event"
+        |> @event_handler.handle_event("unknown-provider", body)
+        |> post_process_message(message)
     end
   end
 
   def child_spec(id, args) do
     %{
       id: id,
-      start: { __MODULE__, :start_link, [args] }
+      start: {__MODULE__, :start_link, [args]}
     }
   end
+
+  defp post_process_message(:process, message), do: {:process, message}
+  defp post_process_message(:skip, message), do: {:skip, message}
 end
