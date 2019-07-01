@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+## [unreleased]
+### Changed
+- How messages are sent via SQS, structure, attributes.
+- How messages are receieved and handled.
+- Provider now is a string argument of handle_event/3.
+
 ## Release [0.2.0] - 16.05.2019
 ### Added
 - CircleCI integration.
