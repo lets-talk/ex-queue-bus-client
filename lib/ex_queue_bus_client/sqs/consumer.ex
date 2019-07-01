@@ -11,7 +11,7 @@ defmodule ExQueueBusClient.SQS.Consumer do
       sqs: opts[:sqs] || SQS
     ]
 
-    GenStage.start_link(__MODULE__, init_opts, [name: opts[:name] || __MODULE__])
+    GenStage.start_link(__MODULE__, init_opts, name: opts[:name] || __MODULE__)
   end
 
   def init(queue: queue_name, producers: producers, sqs: sqs) do
@@ -32,14 +32,13 @@ defmodule ExQueueBusClient.SQS.Consumer do
   defp handle_messages(messages, state) do
     messages
     |> Enum.map(&process_message/1)
-    |> Enum.filter(fn({s, _}) -> s == :process end)
-    |> Enum.map(fn({_, m}) -> m end)
+    |> Enum.filter(fn {s, _} -> s == :process end)
+    |> Enum.map(fn {_, m} -> m end)
     |> (&state.sqs.delete_message_batch(state.queue, &1)).()
   end
 
   def process_message(message) do
     %{"event" => event, "provider" => provider, "body" => body} = Poison.decode!(message.body)
-    provider = String.to_existing_atom(provider)
 
     case @event_handler.handle_event(event, provider, body) do
       :process -> {:process, message}
@@ -50,7 +49,7 @@ defmodule ExQueueBusClient.SQS.Consumer do
   def child_spec(id, args) do
     %{
       id: id,
-      start: { __MODULE__, :start_link, [args] }
+      start: {__MODULE__, :start_link, [args]}
     }
   end
 end

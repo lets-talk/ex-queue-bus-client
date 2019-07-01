@@ -25,8 +25,8 @@ defmodule ExQueueBusClient.SQS.ConsumerTest do
       {:consumer, state, subscribe_to: []} = Consumer.init(opts)
 
       EventHandlerMock
-      |> expect(:handle_event, fn("create_message", :letstalk, %{"content" => "M1"}) -> :process end)
-      |> expect(:handle_event, fn("create_message", :letstalk, %{"content" => "M2"}) -> :skip end)
+      |> expect(:handle_event, fn("create_message", "letstalk", %{"content" => "M1"}) -> :process end)
+      |> expect(:handle_event, fn("create_message", "letstalk", %{"content" => "M2"}) -> :skip end)
 
       assert {:noreply, [], ^state} = Consumer.handle_events(messages, self(), state)
       assert_receive :deleted
