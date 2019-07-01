@@ -18,12 +18,12 @@ defmodule ExQueueBusClient.SQS do
   @doc """
   Send message to AWS SQS.
   """
-  @spec send_message(String.t(), String.t()) :: {:ok, term} | {:error, term}
-  def send_message(queue, message) do
+  @spec send_message(String.t(), {String.t(), [map]}) :: {:ok, term} | {:error, term}
+  def send_message(queue, {message, attributes}) do
     Logger.info("Sending message to SQS: #{inspect(message)}.")
 
     queue
-    |> ExAws.SQS.send_message(message)
+    |> ExAws.SQS.send_message(message, message_attributes: attributes)
     |> ExAws.request()
   end
 
