@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## [unreleased]
+### Changed
+- Provider type passing to handler from atom to string.
+
 ## Release [0.2.0] - 16.05.2019
 ### Added
 - CircleCI integration.
