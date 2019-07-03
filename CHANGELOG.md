@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-## [unreleased]
+## Release [1.0.0] - 03.07.2019
 ### Changed
 - How messages are sent via SQS, structure, attributes.
 - How messages are receieved and handled.
