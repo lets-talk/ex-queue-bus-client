@@ -14,7 +14,7 @@ Add the following to your dependencies in mix file:
 ```elixir
 def deps do
     [
-        {:ex_queue_bus_client, git: "https://github.com/lets-talk/ex-queue-bus-client.git", tag: "0.2.0"}
+        {:ex_queue_bus_client, git: "https://github.com/lets-talk/ex-queue-bus-client.git", tag: "1.0.0"}
     ]
 end
 ```
@@ -29,13 +29,20 @@ To use Amazon SQS:
 use Mix.Config
 
 config :ex_aws,
-  access_key_id:      ["${AWS_ACCESS_KEY}", :instance_role],
-  secret_access_key:  ["${AWS_SECRET_KEY}", :instance_role],
-  region: "us-west-1"
+  access_key_id:      [System.get_env("AWS_ACCESS_KEY"), :instance_role],
+  secret_access_key:  [System.get_env("AWS_SECRET_KEY"), :instance_role],
+  region: System.get_env("AWS_REGION")
 
+# SQS case
 config :ex_queue_bus_client,
-    queue: "${SQS_QUEUE_NAME}",
+    send_via: :sqs,
+    queue: System.get_env("SQS_QUEUE_NAME"),
     event_handler: MyApp.EventHandler
+
+# SNS case
+config :ex_queue_bus_client,
+    send_via: :sns,
+    sns_topic: System.get_env("SNS_TOPIC_NAME")
 ```
 
 Event handler is a module where you define how to deal with different incoming
@@ -48,7 +55,7 @@ from queue or leave it alive waiting.
 ```elixir
 defmodule MyApp.EventHandler do
 
-    def handle_event(:important_event, :my_service, %{members_count: 100})
+    def handle_event("important_event", "my_service", %{members_count: 100})
         :process
     end
 
@@ -59,16 +66,15 @@ end
 
 ## Usage
 
-This version supports only AWS SQS as a queue service and only Tuple as a
-serializable object for sending. But actually you can send any string but it
-will cause desorder in your mesages payload.
+This version supports:
+
+- AWS SQS as a queue service for sending and receiving.
+- AWS SNS for sending.
+- Tuple, String and Map as a type of serializable object for sending.
 
 ```elixir
-alias ExQueueBusClient.SerializableAction, as: SAction
-
 {:ok, _} =
-    {:some_action, %{some: "payload"}}
-    |> SAction.serialize()
+    {"some-event", "my-app", %{some: "payload"}}
     |> ExQueueBusClient.send_action()
 
 {:ok, _} = ExQueueBusClient.send_action("any string")
