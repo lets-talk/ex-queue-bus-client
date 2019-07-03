@@ -10,7 +10,7 @@ defmodule ExQueueBusClient do
 
   @behaviour ExQueueBusClient.SenderBehaviour
 
-  def send_action(action) do
+  def send_action(action = {_, _}) do
     send_via(tx_transport(), action)
   end
 
