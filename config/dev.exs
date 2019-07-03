@@ -7,4 +7,6 @@ config :ex_aws,
 
 config :ex_queue_bus_client,
   queue: "${SQS_QUEUE_NAME}",
-  event_handler: ExQueueBusClient.EventHandler
+  event_handler: ExQueueBusClient.EventHandler,
+  sns_client: ExAws.SNS,
+  aws_client: ExAws
