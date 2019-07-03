@@ -6,6 +6,6 @@ defmodule ExQueueBusClient.SenderBehaviour do
   @doc """
   Send a serialized action
   """
-  @callback send_action({binary, Keyword.t()} | term) ::
+  @callback send_action({binary, [map]} | term) ::
               {binary, [map]} | {:ok, term()} | {:error, term()}
 end
