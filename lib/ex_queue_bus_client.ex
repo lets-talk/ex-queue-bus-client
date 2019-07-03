@@ -3,12 +3,15 @@ defmodule ExQueueBusClient do
   Documentation for ExQueueBusClient.
   """
 
-  alias ExQueueBusClient.SQS
+  alias ExQueueBusClient.{
+    SQS,
+    SNS
+  }
 
   @behaviour ExQueueBusClient.SenderBehaviour
 
-  def send_action(action = {_, _}) do
-    SQS.send_message(queue(), action)
+  def send_action(action) do
+    send_via(tx_transport(), action)
   end
 
   def send_action(action) do
@@ -47,6 +50,18 @@ defmodule ExQueueBusClient do
   @spec aws_client() :: :atom
   def aws_client do
     Application.get_env(:ex_queue_bus_client, :aws_client)
+  end
+
+  defp tx_transport do
+    Application.get_env(:ex_queue_bus_client, :send_via) || :sqs
+  end
+
+  defp send_via(:sqs, action) do
+    SQS.send_message(queue(), action)
+  end
+
+  defp send_via(:sns, action) do
+    SNS.send_message(action)
   end
 
   defprotocol SerializableAction do
