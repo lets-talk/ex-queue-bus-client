@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+## Release [1.0.0] - 03.07.2019
+### Changed
+- How messages are sent via SQS, structure, attributes.
+- How messages are receieved and handled.
+- Provider now is a string argument of handle_event/3.
+### Added
+- AWS SNS publishing integration.
+
 ## Release [0.2.0] - 16.05.2019
 ### Added
 - CircleCI integration.

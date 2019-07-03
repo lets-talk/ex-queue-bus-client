@@ -5,7 +5,7 @@ defmodule ExQueueBusClient.SQS.Producer do
 
   def start_link(opts) do
     opts = Keyword.put(opts, :sqs, opts[:sqs] || SQS)
-    GenStage.start_link(__MODULE__, opts, [name: __MODULE__])
+    GenStage.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   def init(sqs: sqs, queue_name: queue_name) do
@@ -35,7 +35,10 @@ defmodule ExQueueBusClient.SQS.Producer do
   def handle_info(:get_messages, state) do
     aws_resp =
       state.queue
-      |> state.sqs.receive_message(max_number_of_messages: min(state.demand, 10))
+      |> state.sqs.receive_message(
+        message_attribute_names: [:provider, :target, :event],
+        max_number_of_messages: min(state.demand, 10)
+      )
 
     messages =
       case aws_resp do
