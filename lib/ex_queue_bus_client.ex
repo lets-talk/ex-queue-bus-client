@@ -53,7 +53,7 @@ defmodule ExQueueBusClient do
   end
 
   defp tx_transport do
-    Application.get_env(:ex_queue_bus_client, :send_via) || :sqs
+    Application.get_env(:ex_queue_bus_client, :send_via)
   end
 
   defp send_via(:sqs, action) do
@@ -62,6 +62,10 @@ defmodule ExQueueBusClient do
 
   defp send_via(:sns, action) do
     SNS.send_message(action)
+  end
+
+  defp send_via(nil, _) do
+    raise "Please set outgoing transport to use"
   end
 
   defprotocol SerializableAction do
