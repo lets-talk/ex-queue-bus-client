@@ -7,8 +7,14 @@ defmodule ExQueueBusClient do
 
   @behaviour ExQueueBusClient.SenderBehaviour
 
-  def send_action(action) do
+  def send_action(action = {_, _}) do
     SQS.send_message(queue(), action)
+  end
+
+  def send_action(action) do
+    action
+    |> ExQueueBusClient.SerializableAction.serialize()
+    |> send_action()
   end
 
   def queue do
@@ -17,7 +23,7 @@ defmodule ExQueueBusClient do
 
   defprotocol SerializableAction do
     @fallback_to_any true
-    @spec serialize(any) :: String.t() | :error
+    @spec serialize(any) :: {binary, [map]}
     def serialize(data)
   end
 end

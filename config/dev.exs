@@ -1,7 +1,10 @@
 use Mix.Config
 
-config :ex_queue_bus_client,
-  queue: "communication_bus_develop",
-  event_handler: ExQueueBusClient.EventHandler
+config :ex_aws,
+  access_key_id: ["${AWS_ACCESS_KEY}", :instance_role],
+  secret_access_key: ["${AWS_SECRET_KEY}", :instance_role],
+  region: "${AWS_REGION}"
 
-import_config "dev.secret.exs"
+config :ex_queue_bus_client,
+  queue: "${SQS_QUEUE_NAME}",
+  event_handler: ExQueueBusClient.EventHandler
