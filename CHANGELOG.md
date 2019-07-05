@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## Hotfix [1.0.1] - 05.07.2019
+### Fixed
+- Dependency injection for testing with mocks. Ensure to
+  use real modules in application that use this library.
+
 ## Release [1.0.0] - 03.07.2019
 ### Changed
 - How messages are sent via SQS, structure, attributes.
