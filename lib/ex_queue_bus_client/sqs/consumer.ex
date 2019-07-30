@@ -37,7 +37,7 @@ defmodule ExQueueBusClient.SQS.Consumer do
   @spec handle_messages([map], map) :: term
   defp handle_messages(messages, state) do
     messages
-    |> Enum.map(&process_message/1)
+    |> Enum.map(&process_message(&1, state.event_handler))
     |> Enum.filter(fn {s, _} -> s == :process end)
     |> Enum.map(fn {_, m} -> m end)
     |> (&state.sqs.delete_message_batch(state.queue, &1)).()
@@ -47,21 +47,37 @@ defmodule ExQueueBusClient.SQS.Consumer do
   Process received message, run provided callback for handling it.
   it returns tuple with handling result and following action.
   """
-  @spec process_message(map) :: {:process, map} | {:skip | map}
-  def process_message(message) do
+  @spec process_message(map, atom) :: {:process, map} | {:skip | map}
+  def process_message(message, event_handler) do
     body = Poison.decode!(message.body)
 
-    case message.message_attributes do
-      %{"provider" => %{value: provider}, "event" => %{value: event}} ->
-        event
-        |> @event_handler.handle_event(provider, body)
-        |> post_process_message(message)
+    {event, provider} =
+      case message.message_attributes do
+        %{
+          "provider" => %{value: provider},
+          "event" => %{value: event},
+          "resource" => %{value: resource}
+        } ->
+          {"#{resource}.#{event}", provider}
 
-      _ ->
-        "unknown-event"
-        |> @event_handler.handle_event("unknown-provider", body)
-        |> post_process_message(message)
-    end
+        %{
+          "provider" => %{value: provider},
+          "event" => %{value: event}
+        } ->
+          {event, provider}
+
+        %{
+          "event" => %{value: event}
+        } ->
+          {event, "unknown-provider"}
+
+        _ ->
+          {"unknown-event", "unknown-provider"}
+      end
+
+    event
+    |> event_handler.handle_event(provider, body)
+    |> post_process_message(message)
   end
 
   def child_spec(id, args) do
