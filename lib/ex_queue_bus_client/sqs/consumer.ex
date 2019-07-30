@@ -2,22 +2,22 @@ defmodule ExQueueBusClient.SQS.Consumer do
   use GenStage
   alias ExQueueBusClient.SQS
 
-  @event_handler Application.get_env(:ex_queue_bus_client, :event_handler)
-
   def start_link(opts) do
     init_opts = [
       queue: opts[:queue_name],
       producers: opts[:producers],
+      event_handler: opts[:event_handler],
       sqs: opts[:sqs] || SQS
     ]
 
-    GenStage.start_link(__MODULE__, init_opts, name: opts[:name] || __MODULE__)
+    GenStage.start_link(__MODULE__, init_opts)
   end
 
-  def init(queue: queue_name, producers: producers, sqs: sqs) do
+  def init(queue: queue_name, producers: producers, event_handler: event_handler, sqs: sqs) do
     state = %{
       queue: queue_name,
-      sqs: sqs
+      sqs: sqs,
+      event_handler: event_handler
     }
 
     subscriptions = Enum.map(producers, &{&1, [max_demand: 10]})

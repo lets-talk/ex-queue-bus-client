@@ -21,7 +21,13 @@ defmodule ExQueueBusClient.SQS.ConsumerTest do
 
   describe "handle_events/3" do
     test "processes message", %{messages: messages} do
-      opts = [queue: "test", producers: [], sqs: SqsMock]
+      opts = [
+        queue: "test",
+        producers: [],
+        event_handler: ExQueueBusClient.EventHandlerMock,
+        sqs: SqsMock
+      ]
+
       {:consumer, state, subscribe_to: []} = Consumer.init(opts)
 
       EventHandlerMock
