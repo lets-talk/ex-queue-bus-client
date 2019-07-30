@@ -14,7 +14,7 @@ Add the following to your dependencies in mix file:
 ```elixir
 def deps do
     [
-        {:ex_queue_bus_client, git: "https://github.com/lets-talk/ex-queue-bus-client.git", tag: "1.0.0"}
+        {:ex_queue_bus_client, git: "https://github.com/lets-talk/ex-queue-bus-client.git", tag: "2.0.0"}
     ]
 end
 ```
@@ -23,7 +23,8 @@ Then run `mix deps.get` command to fetch dependencies.
 
 ## Configuration
 
-To use Amazon SQS:
+Library includes `ex_aws` as a dependency, so to use it you need to add
+a configuration to your `Mix.Config`:
 
 ```elixir
 use Mix.Config
@@ -32,17 +33,41 @@ config :ex_aws,
   access_key_id:      [System.get_env("AWS_ACCESS_KEY"), :instance_role],
   secret_access_key:  [System.get_env("AWS_SECRET_KEY"), :instance_role],
   region: System.get_env("AWS_REGION")
+```
 
-# SQS case
-config :ex_queue_bus_client,
-    send_via: :sqs,
-    queue: System.get_env("SQS_QUEUE_NAME"),
-    event_handler: MyApp.EventHandler
+To configure your bus you need to create a module like following:
 
-# SNS case
-config :ex_queue_bus_client,
+```elixir
+defmodule MyApp.Bus do
+  use ExQueueBusClient,
+    otp_app: :my_app,
+    event_handler: MyApp.EventHandler,
     send_via: :sns,
-    sns_topic: System.get_env("SNS_TOPIC_NAME")
+    receive_with: :sqs
+end
+```
+
+and according to your `:send_via` and `:receive_with` parameters add config to
+your `Mix.Config`:
+
+```elixir
+config :my_app, MyApp.Bus,
+  consumers_count: 5, # number of workers to process messages, by default 2
+  sqs_queue_name: "queue",
+  sns_topic_arn: "long topic arn"
+```
+
+Then you should add your bus to the supervision tree:
+
+```elixir
+  def start(_, _) do
+    children = [
+      MyApp.Bus
+    ]
+
+    opts = [strategy: :one_for_one, name: MyApp.Supervisor]
+    Supervisor.start_link(children, opts)
+  end
 ```
 
 Event handler is a module where you define how to deal with different incoming
@@ -64,20 +89,52 @@ defmodule MyApp.EventHandler do
 end
 ```
 
+## Message Meta Attributes
+
+Several message attributes are defined and supported by `ExQueueBusClient` these are:
+
+- `:event` of type `:string`
+- `:resource` of type `:string`
+- `:provider` of type `:string`
+- `:role` of type `:"String.Array"`
+- `:version` of type `:number`
+- `:organization` of type `:string`
+
+### Event and Resource
+
+That is the resource, the event subject. When you receive message with defined `:event` and `:resource` attributes, `ExQueueBusClient` join these two with `"."` and `handle_event/3` will receive `"resource.event"` as en event argument.
+
+Also when you send message and set the `event` key of a map the library will automatically try to split your event into resource and event if resource is not explicitely defined. 
+
+If neither event nor resource are defined `handle_event/3` will receive `"unknown-event"` as en event argument.
+
+### Provider
+
+Name of a micro service that sent a message. This attribute when defined is passed to `handle_event/3` as a second argument, when not defined `handle_event/3` will receive `"unknown-provider"` as a provider argument. 
+
+### Version
+
+With this number attribute you can control different message's payloads depending of the api version.
+
 ## Usage
+
+### RX
+
+Just define `handle_event/3` callback clauses at your event handler module and you are good with this.
+
+### TX
 
 This version supports:
 
 - AWS SQS as a queue service for sending and receiving.
 - AWS SNS for sending.
-- Tuple, String and Map as a type of serializable object for sending.
 
 ```elixir
-{:ok, _} =
-    {"some-event", "my-app", %{some: "payload"}}
-    |> ExQueueBusClient.send_action()
-
-{:ok, _} = ExQueueBusClient.send_action("any string")
+{:ok, _response} = ExQueueBusClient.send_action(%{
+  payload: %{content: "Hello folks !"},
+  event: "message.create",
+  provider: "my_app"
+})
 ```
 
 ## Testing
