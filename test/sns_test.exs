@@ -4,7 +4,8 @@ defmodule ExQueueBusClient.SNSTest do
   alias ExQueueBusClient.{
     SNS,
     SNSClientMock,
-    AWSClientMock
+    AWSClientMock,
+    ConfigMock
   }
 
   import Mox
@@ -15,7 +16,10 @@ defmodule ExQueueBusClient.SNSTest do
     test "it makes a correct request to AWS" do
       query = %ExAws.Operation.Query{}
       payload = %{"content" => "Hello"}
-      topic = ExQueueBusClient.sns_topic()
+      topic = "test-topic"
+
+      ConfigMock
+      |> expect(:config, fn -> [sns_topic_arn: topic] end)
 
       attributes = [
         %{
