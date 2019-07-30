@@ -18,20 +18,42 @@ defmodule ExQueueBusClient.MapTest do
         %{
           name: "event",
           data_type: :string,
-          value: "some_action"
+          value: "action"
+        },
+        %{
+          name: "organization",
+          data_type: :string,
+          value: "bci"
         },
         %{
           name: "provider",
           data_type: :string,
           value: "nuntium"
+        },
+        %{
+          name: "resource",
+          data_type: :string,
+          value: "resource"
+        },
+        %{
+          name: "role",
+          data_type: :"String.Array",
+          value: Poison.encode!(["integration"])
+        },
+        %{
+          name: "version",
+          data_type: :number,
+          value: 1
         }
       ]
     }
 
     actual = %{
       payload: %{data: 123},
-      event: "some_action",
-      provider: "nuntium"
+      event: "resource.action",
+      provider: "nuntium",
+      role: ["integration"],
+      organization: "bci"
     }
 
     assert serialize(actual) == expected
