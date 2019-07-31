@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+## [unreleased]
+### Fixed
+- Configuration system is now callback based.
+### Added
+- Support for more message attributes.
+### Changed
+- Message format.
+
 ## Hotfix [1.0.1] - 05.07.2019
 ### Fixed
 - Dependency injection for testing with mocks. Ensure to

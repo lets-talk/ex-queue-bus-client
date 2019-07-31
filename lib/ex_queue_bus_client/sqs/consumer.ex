@@ -2,22 +2,22 @@ defmodule ExQueueBusClient.SQS.Consumer do
   use GenStage
   alias ExQueueBusClient.SQS
 
-  @event_handler Application.get_env(:ex_queue_bus_client, :event_handler)
-
   def start_link(opts) do
     init_opts = [
       queue: opts[:queue_name],
       producers: opts[:producers],
+      event_handler: opts[:event_handler],
       sqs: opts[:sqs] || SQS
     ]
 
-    GenStage.start_link(__MODULE__, init_opts, name: opts[:name] || __MODULE__)
+    GenStage.start_link(__MODULE__, init_opts)
   end
 
-  def init(queue: queue_name, producers: producers, sqs: sqs) do
+  def init(queue: queue_name, producers: producers, event_handler: event_handler, sqs: sqs) do
     state = %{
       queue: queue_name,
-      sqs: sqs
+      sqs: sqs,
+      event_handler: event_handler
     }
 
     subscriptions = Enum.map(producers, &{&1, [max_demand: 10]})
@@ -37,7 +37,7 @@ defmodule ExQueueBusClient.SQS.Consumer do
   @spec handle_messages([map], map) :: term
   defp handle_messages(messages, state) do
     messages
-    |> Enum.map(&process_message/1)
+    |> Enum.map(&process_message(&1, state.event_handler))
     |> Enum.filter(fn {s, _} -> s == :process end)
     |> Enum.map(fn {_, m} -> m end)
     |> (&state.sqs.delete_message_batch(state.queue, &1)).()
@@ -47,21 +47,37 @@ defmodule ExQueueBusClient.SQS.Consumer do
   Process received message, run provided callback for handling it.
   it returns tuple with handling result and following action.
   """
-  @spec process_message(map) :: {:process, map} | {:skip | map}
-  def process_message(message) do
+  @spec process_message(map, atom) :: {:process, map} | {:skip | map}
+  def process_message(message, event_handler) do
     body = Poison.decode!(message.body)
 
-    case message.message_attributes do
-      %{"provider" => %{value: provider}, "event" => %{value: event}} ->
-        event
-        |> @event_handler.handle_event(provider, body)
-        |> post_process_message(message)
+    {event, provider} =
+      case message.message_attributes do
+        %{
+          "provider" => %{value: provider},
+          "event" => %{value: event},
+          "resource" => %{value: resource}
+        } ->
+          {"#{resource}.#{event}", provider}
 
-      _ ->
-        "unknown-event"
-        |> @event_handler.handle_event("unknown-provider", body)
-        |> post_process_message(message)
-    end
+        %{
+          "provider" => %{value: provider},
+          "event" => %{value: event}
+        } ->
+          {event, provider}
+
+        %{
+          "event" => %{value: event}
+        } ->
+          {event, "unknown-provider"}
+
+        _ ->
+          {"unknown-event", "unknown-provider"}
+      end
+
+    event
+    |> event_handler.handle_event(provider, body)
+    |> post_process_message(message)
   end
 
   def child_spec(id, args) do

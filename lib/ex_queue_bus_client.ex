@@ -21,19 +21,12 @@ defmodule ExQueueBusClient do
   end
 
   @doc """
-  AWS SQS queue name to use if SQS is configured.
-  """
-  @spec queue() :: binary
-  def queue do
-    Application.get_env(:ex_queue_bus_client, :queue) || "probando"
-  end
-
-  @doc """
   AWS SNS topic to use if SNS is configured.
   """
   @spec sns_topic() :: binary()
   def sns_topic do
-    Application.get_env(:ex_queue_bus_client, :sns_topic)
+    config()
+    |> Keyword.get(:sns_topic_arn)
   end
 
   @doc """
@@ -41,7 +34,7 @@ defmodule ExQueueBusClient do
   """
   @spec sns_client() :: :atom
   def sns_client do
-    Application.get_env(:ex_queue_bus_client, :sns_client) || ExAws.SNS
+    Application.get_env(:ex_queue_bus_client, :sns_client)
   end
 
   @doc """
@@ -49,15 +42,23 @@ defmodule ExQueueBusClient do
   """
   @spec aws_client() :: :atom
   def aws_client do
-    Application.get_env(:ex_queue_bus_client, :aws_client) || ExAws
+    Application.get_env(:ex_queue_bus_client, :aws_client)
+  end
+
+  def config do
+    config_agent = Application.get_env(:ex_queue_bus_client, :config_agent)
+    config_agent.config()
   end
 
   defp tx_transport do
-    Application.get_env(:ex_queue_bus_client, :send_via)
+    config()
+    |> Keyword.get(:send_via)
   end
 
   defp send_via(:sqs, action) do
-    SQS.send_message(queue(), action)
+    config()
+    |> Keyword.get(:sqs_queue_name)
+    |> SQS.send_message(action)
   end
 
   defp send_via(:sns, action) do
