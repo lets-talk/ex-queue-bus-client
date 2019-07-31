@@ -36,7 +36,7 @@ defmodule ExQueueBusClient.MapTest do
           value: "resource"
         },
         %{
-          name: "role",
+          name: "roles",
           data_type: :"String.Array",
           value: Poison.encode!(["integration"])
         },

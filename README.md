@@ -96,7 +96,7 @@ Several message attributes are defined and supported by `ExQueueBusClient` these
 - `:event` of type `:string`
 - `:resource` of type `:string`
 - `:provider` of type `:string`
-- `:role` of type `:"String.Array"`
+- `:roles` of type `:"String.Array"`
 - `:version` of type `:number`
 - `:organization` of type `:string`
 

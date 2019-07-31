@@ -3,7 +3,7 @@ defmodule ExQueueBusClient.SQS.Producer do
 
   alias ExQueueBusClient.SQS
 
-  @message_attributes [:version, :provider, :target, :event, :resource, :organization, :role]
+  @message_attributes [:version, :provider, :target, :event, :resource, :organization, :roles]
 
   def start_link(opts) do
     opts = Keyword.put(opts, :sqs, opts[:sqs] || SQS)
