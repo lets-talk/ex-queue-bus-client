@@ -6,6 +6,6 @@ config :ex_aws,
   region: "us-west-1"
 
 config :ex_queue_bus_client,
-  queue: "${SQS_QUEUE_NAME}",
   sns_client: ExAws.SNS,
-  aws_client: ExAws
+  aws_client: ExAws,
+  config_agent: ExQueueBusClient.BusSupervisor.Config

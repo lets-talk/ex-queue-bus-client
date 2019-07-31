@@ -14,21 +14,27 @@ defmodule ExQueueBusClient.SQS.ConsumerTest do
   setup do
     messages =
       ["M1", "M2"]
-      |> Enum.map(&build_message("create_message", &1))
+      |> Enum.map(&build_message("message", "create", &1))
 
     %{messages: messages}
   end
 
   describe "handle_events/3" do
     test "processes message", %{messages: messages} do
-      opts = [queue: "test", producers: [], sqs: SqsMock]
+      opts = [
+        queue: "test",
+        producers: [],
+        event_handler: ExQueueBusClient.EventHandlerMock,
+        sqs: SqsMock
+      ]
+
       {:consumer, state, subscribe_to: []} = Consumer.init(opts)
 
       EventHandlerMock
-      |> expect(:handle_event, fn "create_message", "letstalk", %{"content" => "M1"} ->
+      |> expect(:handle_event, fn "message.create", "letstalk", %{"content" => "M1"} ->
         :process
       end)
-      |> expect(:handle_event, fn "create_message", "letstalk", %{"content" => "M2"} -> :skip end)
+      |> expect(:handle_event, fn "message.create", "letstalk", %{"content" => "M2"} -> :skip end)
 
       assert {:noreply, [], ^state} = Consumer.handle_events(messages, self(), state)
       assert_receive :deleted
@@ -36,7 +42,7 @@ defmodule ExQueueBusClient.SQS.ConsumerTest do
     end
   end
 
-  defp build_message(event, body) do
+  defp build_message(resource, event, body) do
     %{
       attributes: [],
       body: Poison.encode!(%{content: body}),
@@ -49,6 +55,10 @@ defmodule ExQueueBusClient.SQS.ConsumerTest do
         "event" => %{
           name: "event",
           value: event
+        },
+        "resource" => %{
+          name: "resource",
+          value: resource
         }
       },
       message_id: "8c1c0a71-20d6-4c44-b872-b032f51315d8",

@@ -4,7 +4,8 @@ defmodule ExQueueBusClientTest do
 
   alias ExQueueBusClient.{
     SNSClientMock,
-    AWSClientMock
+    AWSClientMock,
+    ConfigMock
   }
 
   import Mox
@@ -20,12 +21,15 @@ defmodule ExQueueBusClientTest do
 
   @tag :integration
   test "AWS SQS responds ok after sending message" do
-    Application.put_env(:ex_queue_bus_client, :send_via, :sqs)
+    ConfigMock
+    |> expect(:config, 2, fn -> [send_via: :sqs, sqs_queue_name: "probando"] end)
+
     assert {:ok, _} = ExQueueBusClient.send_action("some action")
   end
 
   test "sends message via SNS" do
-    Application.put_env(:ex_queue_bus_client, :send_via, :sns)
+    ConfigMock
+    |> expect(:config, 2, fn -> [send_via: :sns, sns_topic_arn: "test_topic"] end)
 
     SNSClientMock
     |> expect(:publish, fn _, _ -> %ExAws.Operation.Query{} end)
@@ -34,7 +38,8 @@ defmodule ExQueueBusClientTest do
   end
 
   test "raises error when tx transport is not set" do
-    Application.put_env(:ex_queue_bus_client, :send_via, nil)
+    ConfigMock
+    |> expect(:config, fn -> [send_via: nil] end)
 
     assert_raise RuntimeError, "Please set outgoing transport to use", fn ->
       ExQueueBusClient.send_action({"some_action", []})
