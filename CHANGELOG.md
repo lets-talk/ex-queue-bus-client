@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-## [unreleased]
+## Release [2.0.0] - 31.07.2019
 ### Fixed
 - Configuration system is now callback based.
 ### Added
