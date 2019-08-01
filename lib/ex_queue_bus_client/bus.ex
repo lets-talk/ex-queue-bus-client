@@ -45,11 +45,22 @@ defmodule ExQueueBusClient.Bus do
           opts
         )
       end
+
+      def child_spec(_) do
+        %{
+          id: __MODULE__,
+          start: {__MODULE__, :start_link, []}
+        }
+      end
     end
   end
+
+  @type event :: tuple | map | binary | any
 
   @callback start_link(opts :: Keyword.t()) ::
               {:ok, pid}
               | {:error, {:already_started, pid}}
               | {:error, term}
+
+  @callback child_spec(term) :: map
 end

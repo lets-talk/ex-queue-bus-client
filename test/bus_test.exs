@@ -21,6 +21,10 @@ defmodule ExQueueBusClient.BusTest do
       assert function_exported?(DummyBus, :start_link, 1)
     end
 
+    test "it has a child_spec/1 function exported" do
+      assert function_exported?(DummyBus, :child_spec, 1)
+    end
+
     test "it starts bus supervisor with children and correct config" do
       assert {:ok, pid} = DummyBus.start_link()
 
