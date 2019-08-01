@@ -14,7 +14,7 @@ Add the following to your dependencies in mix file:
 ```elixir
 def deps do
     [
-        {:ex_queue_bus_client, git: "https://github.com/lets-talk/ex-queue-bus-client.git", tag: "2.0.0"}
+        {:ex_queue_bus_client, git: "https://github.com/lets-talk/ex-queue-bus-client.git", tag: "2.0.1"}
     ]
 end
 ```
@@ -39,7 +39,7 @@ To configure your bus you need to create a module like following:
 
 ```elixir
 defmodule MyApp.Bus do
-  use ExQueueBusClient,
+  use ExQueueBusClient.Bus,
     otp_app: :my_app,
     event_handler: MyApp.EventHandler,
     send_via: :sns,
@@ -130,7 +130,7 @@ This version supports:
 - AWS SNS for sending.
 
 ```elixir
-{:ok, _response} = ExQueueBusClient.send_action(%{
+{:ok, _response} = MyApp.Bus.publish(%{
   payload: %{content: "Hello folks !"},
   event: "message.create",
   provider: "my_app"
