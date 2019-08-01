@@ -5,16 +5,16 @@ defmodule ExQueueBusClient.Bus do
 
   When used, Bus expects `:otp_app` OTP application that uses
   this library and that has transport configuration to be provided,
-  also two options `:send_via` which defines a way to send messages
-  that can be SNS or SQS and `:receive_with` which defines a way
+  also two options `:tx` which defines a way to send messages
+  that can be SNS or SQS and `:rx` which defines a way
   to receive messages, only SQS for now. For example, the bus:
 
     defmodule MyApp.Bus do
       use ExQueueBusClient.Bus,
         otp_app: :my_app,
         event_handler: MyApp.EventHandler,
-        send_via: :sns,
-        receive_with: :sqs
+        tx: :sns,
+        rx: :sqs
     end
 
   Could be configured with:
@@ -31,8 +31,8 @@ defmodule ExQueueBusClient.Bus do
       @behaviour ExQueueBusClient.Bus
 
       @otp_app Keyword.get(opts, :otp_app)
-      @send_via Keyword.get(opts, :send_via)
-      @receive_with Keyword.get(opts, :receive_with, :sqs)
+      @tx Keyword.get(opts, :tx)
+      @rx Keyword.get(opts, :rx, :sqs)
       @event_handler Keyword.get(opts, :event_handler)
 
       def start_link(opts \\ []) do
@@ -40,16 +40,33 @@ defmodule ExQueueBusClient.Bus do
           __MODULE__,
           @otp_app,
           @event_handler,
-          @receive_with,
-          @send_via,
+          @rx,
+          @tx,
           opts
         )
       end
+
+      def child_spec(_) do
+        %{
+          id: __MODULE__,
+          start: {__MODULE__, :start_link, []}
+        }
+      end
+
+      def publish(event) do
+        ExQueueBusClient.send_action(event)
+      end
     end
   end
+
+  @type event :: tuple | map | binary | any
 
   @callback start_link(opts :: Keyword.t()) ::
               {:ok, pid}
               | {:error, {:already_started, pid}}
               | {:error, term}
+
+  @callback child_spec(term) :: map
+
+  @callback publish(event) :: {:ok, term} | {:error, term}
 end

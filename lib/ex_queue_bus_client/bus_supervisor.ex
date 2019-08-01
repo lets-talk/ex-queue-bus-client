@@ -7,12 +7,10 @@ defmodule ExQueueBusClient.BusSupervisor do
   @doc """
   Starts gen stage system supervisor.
   """
-  def start_link(bus, otp_app, handler, receive_with, send_via, opts) do
+  def start_link(bus, otp_app, handler, rx, tx, opts) do
     name = Keyword.get(opts, :name, bus)
 
-    Supervisor.start_link(__MODULE__, {name, bus, otp_app, handler, receive_with, send_via, opts},
-      name: name
-    )
+    Supervisor.start_link(__MODULE__, {name, bus, otp_app, handler, rx, tx, opts}, name: name)
   end
 
   @doc """
@@ -26,15 +24,15 @@ defmodule ExQueueBusClient.BusSupervisor do
 
   @doc false
   @impl true
-  def init({_name, bus, otp_app, handler, receive_with, send_via, _opts}) do
+  def init({_name, bus, otp_app, handler, rx, tx, _opts}) do
     config =
       bus
       |> config(otp_app)
       |> Keyword.put(:event_handler, handler)
-      |> Keyword.put(:send_via, send_via)
+      |> Keyword.put(:tx, tx)
 
     children = [
-      {ExQueueBusClient.BusSupervisor.Config, config} | receive_mechanism(receive_with, config)
+      {ExQueueBusClient.BusSupervisor.Config, config} | receive_mechanism(rx, config)
     ]
 
     Supervisor.init(children, strategy: :one_for_one, max_restarts: 0)
