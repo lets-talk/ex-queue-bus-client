@@ -31,7 +31,7 @@ defimpl ExQueueBusClient.SerializableAction, for: Map do
     %{name: "event", data_type: :string, value: value}
   end
 
-  defp parse_attribute({:role, value}) do
+  defp parse_attribute({:roles, value}) do
     %{name: "roles", data_type: :"String.Array", value: Poison.encode!(value)}
   end
 
@@ -39,8 +39,8 @@ defimpl ExQueueBusClient.SerializableAction, for: Map do
     %{name: "version", data_type: :number, value: value}
   end
 
-  defp parse_attribute({:organization, value}) do
-    %{name: "organization", data_type: :string, value: value}
+  defp parse_attribute({:realm, value}) do
+    %{name: "realm", data_type: :string, value: value}
   end
 
   defp parse_attribute({:resource, value}) do

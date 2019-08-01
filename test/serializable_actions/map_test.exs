@@ -21,14 +21,14 @@ defmodule ExQueueBusClient.MapTest do
           value: "action"
         },
         %{
-          name: "organization",
-          data_type: :string,
-          value: "bci"
-        },
-        %{
           name: "provider",
           data_type: :string,
           value: "nuntium"
+        },
+        %{
+          name: "realm",
+          data_type: :string,
+          value: "bci"
         },
         %{
           name: "resource",
@@ -52,8 +52,8 @@ defmodule ExQueueBusClient.MapTest do
       payload: %{data: 123},
       event: "resource.action",
       provider: "nuntium",
-      role: ["integration"],
-      organization: "bci"
+      roles: ["integration"],
+      realm: "bci"
     }
 
     assert serialize(actual) == expected

@@ -42,12 +42,12 @@ defmodule MyApp.Bus do
   use ExQueueBusClient.Bus,
     otp_app: :my_app,
     event_handler: MyApp.EventHandler,
-    send_via: :sns,
-    receive_with: :sqs
+    tx: :sns,
+    rx: :sqs
 end
 ```
 
-and according to your `:send_via` and `:receive_with` parameters add config to
+and according to your `:tx` and `:rx` parameters add config to
 your `Mix.Config`:
 
 ```elixir
@@ -98,7 +98,7 @@ Several message attributes are defined and supported by `ExQueueBusClient` these
 - `:provider` of type `:string`
 - `:roles` of type `:"String.Array"`
 - `:version` of type `:number`
-- `:organization` of type `:string`
+- `:realm` of type `:string`
 
 ### Event and Resource
 

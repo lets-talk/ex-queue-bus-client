@@ -5,8 +5,8 @@ defmodule ExQueueBusClient.BusTest do
     use ExQueueBusClient.Bus,
       otp_app: :ex_queue_bus_client,
       event_handler: ExQueueBusClient.EventHandler,
-      send_via: :sns,
-      receive_with: :sqs
+      tx: :sns,
+      rx: :sqs
   end
 
   @settings [consumers_count: 3, sns_topic_arn: "test-topic", sqs_queue_name: "test-queue"]
@@ -43,7 +43,7 @@ defmodule ExQueueBusClient.BusTest do
       config =
         @settings
         |> Keyword.put(:event_handler, ExQueueBusClient.EventHandler)
-        |> Keyword.put(:send_via, :sns)
+        |> Keyword.put(:tx, :sns)
 
       assert ^config = ExQueueBusClient.BusSupervisor.Config.config()
     end

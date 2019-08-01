@@ -55,7 +55,7 @@ defmodule ExQueueBusClient do
 
   defp tx_transport do
     config()
-    |> Keyword.get(:send_via)
+    |> Keyword.get(:tx)
   end
 
   defp send_via(:sqs, action) do
