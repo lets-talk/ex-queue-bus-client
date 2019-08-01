@@ -34,7 +34,7 @@ defmodule ExQueueBusClient do
   """
   @spec sns_client() :: :atom
   def sns_client do
-    Application.get_env(:ex_queue_bus_client, :sns_client)
+    Application.get_env(:ex_queue_bus_client, :sns_client) || ExAws.SNS
   end
 
   @doc """
@@ -42,17 +42,20 @@ defmodule ExQueueBusClient do
   """
   @spec aws_client() :: :atom
   def aws_client do
-    Application.get_env(:ex_queue_bus_client, :aws_client)
+    Application.get_env(:ex_queue_bus_client, :aws_client) || ExAws
   end
 
   def config do
-    config_agent = Application.get_env(:ex_queue_bus_client, :config_agent)
+    config_agent =
+      Application.get_env(:ex_queue_bus_client, :config_agent) ||
+        ExQueueBusClient.BusSupervisor.Config
+
     config_agent.config()
   end
 
   defp tx_transport do
     config()
-    |> Keyword.get(:send_via)
+    |> Keyword.get(:tx)
   end
 
   defp send_via(:sqs, action) do

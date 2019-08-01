@@ -22,14 +22,14 @@ defmodule ExQueueBusClientTest do
   @tag :integration
   test "AWS SQS responds ok after sending message" do
     ConfigMock
-    |> expect(:config, 2, fn -> [send_via: :sqs, sqs_queue_name: "probando"] end)
+    |> expect(:config, 2, fn -> [tx: :sqs, sqs_queue_name: "probando"] end)
 
     assert {:ok, _} = ExQueueBusClient.send_action("some action")
   end
 
   test "sends message via SNS" do
     ConfigMock
-    |> expect(:config, 2, fn -> [send_via: :sns, sns_topic_arn: "test_topic"] end)
+    |> expect(:config, 2, fn -> [tx: :sns, sns_topic_arn: "test_topic"] end)
 
     SNSClientMock
     |> expect(:publish, fn _, _ -> %ExAws.Operation.Query{} end)
@@ -39,7 +39,7 @@ defmodule ExQueueBusClientTest do
 
   test "raises error when tx transport is not set" do
     ConfigMock
-    |> expect(:config, fn -> [send_via: nil] end)
+    |> expect(:config, fn -> [tx: nil] end)
 
     assert_raise RuntimeError, "Please set outgoing transport to use", fn ->
       ExQueueBusClient.send_action({"some_action", []})
