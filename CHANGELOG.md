@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+## Hotfix [2.0.1] - 01.08.2019
+### Fixed
+- Use real modules when mocks are not defined without app env.
+
+### Added
+- Childspec for Bus.
+- Delegate `Bus.publish/1` to `ExQueueBusClient.send_action/1`.
+
 ## Release [2.0.0] - 31.07.2019
 ### Fixed
 - Configuration system is now callback based.
