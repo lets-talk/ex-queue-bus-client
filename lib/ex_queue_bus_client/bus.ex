@@ -52,6 +52,10 @@ defmodule ExQueueBusClient.Bus do
           start: {__MODULE__, :start_link, []}
         }
       end
+
+      def publish(event) do
+        ExQueueBusClient.send_action(event)
+      end
     end
   end
 
@@ -63,4 +67,6 @@ defmodule ExQueueBusClient.Bus do
               | {:error, term}
 
   @callback child_spec(term) :: map
+
+  @callback publish(event) :: {:ok, term} | {:error, term}
 end
