@@ -24,7 +24,8 @@ defmodule ExQueueBusClient.SQS.ProducerTest do
         %{name: "resource", data_type: :string, value: "message"},
         %{name: "version", data_type: :string, value: "1"},
         %{name: "roles", data_type: :"String.Array", value: "['foo', 'bar']"},
-        %{name: "target", data_type: :string, value: "ex_queue_bus_client"}
+        %{name: "target", data_type: :string, value: "ex_queue_bus_client"},
+        %{name: "type", data_type: :string, value: "command"}
       ]
 
       queue |> SQS.create_queue() |> ExAws.request()
@@ -54,7 +55,8 @@ defmodule ExQueueBusClient.SQS.ProducerTest do
               "resource" => "message",
               "version" => "1",
               "roles" => "['foo', 'bar']",
-              "target" => "ex_queue_bus_client"
+              "target" => "ex_queue_bus_client",
+              "type" => "command"
             }
           }
         end
@@ -72,7 +74,8 @@ defmodule ExQueueBusClient.SQS.ProducerTest do
               "resource" => m.message_attributes["resource"].value,
               "version" => m.message_attributes["version"].value,
               "roles" => m.message_attributes["roles"].value,
-              "target" => m.message_attributes["target"].value
+              "target" => m.message_attributes["target"].value,
+              "type" => m.message_attributes["type"].value
             }
           }
         end)
