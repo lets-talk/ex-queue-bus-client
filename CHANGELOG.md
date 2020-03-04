@@ -1,10 +1,15 @@
 CHANGELOG
 =========
 
+## [unreleased]
+### Added
+- New message attribute `Type` to handle.
+### Changed
+- Pass all attributes to handle_event function as a fourth argument.
+
 ## Hotfix [2.0.2] - 16.01.2020
 ### Fixed
 - Fix hacney version to get reed of ssl problem.
-
 
 ## Hotfix [2.0.1] - 01.08.2019
 ### Fixed

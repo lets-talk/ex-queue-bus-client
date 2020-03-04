@@ -76,7 +76,7 @@ defmodule ExQueueBusClient.SQS.Consumer do
       end
 
     event
-    |> event_handler.handle_event(provider, body)
+    |> event_handler.handle_event(provider, body, message.message_attributes)
     |> post_process_message(message)
   end
 

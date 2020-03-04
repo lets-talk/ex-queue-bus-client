@@ -41,6 +41,11 @@ defmodule ExQueueBusClient.MapTest do
           value: Poison.encode!(["integration"])
         },
         %{
+          name: "type",
+          data_type: :string,
+          value: "command"
+        },
+        %{
           name: "version",
           data_type: :number,
           value: 1
@@ -53,7 +58,8 @@ defmodule ExQueueBusClient.MapTest do
       event: "resource.action",
       provider: "nuntium",
       roles: ["integration"],
-      realm: "bci"
+      realm: "bci",
+      type: "command"
     }
 
     assert serialize(actual) == expected

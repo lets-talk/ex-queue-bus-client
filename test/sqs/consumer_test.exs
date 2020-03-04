@@ -28,13 +28,23 @@ defmodule ExQueueBusClient.SQS.ConsumerTest do
         sqs: SqsMock
       ]
 
+      exp_attrs = attributes("message", "create")
+
       {:consumer, state, subscribe_to: []} = Consumer.init(opts)
 
       EventHandlerMock
-      |> expect(:handle_event, fn "message.create", "letstalk", %{"content" => "M1"} ->
+      |> expect(:handle_event, fn "message.create",
+                                  "letstalk",
+                                  %{"content" => "M1"},
+                                  ^exp_attrs ->
         :process
       end)
-      |> expect(:handle_event, fn "message.create", "letstalk", %{"content" => "M2"} -> :skip end)
+      |> expect(:handle_event, fn "message.create",
+                                  "letstalk",
+                                  %{"content" => "M2"},
+                                  ^exp_attrs ->
+        :skip
+      end)
 
       assert {:noreply, [], ^state} = Consumer.handle_events(messages, self(), state)
       assert_receive :deleted
@@ -47,22 +57,26 @@ defmodule ExQueueBusClient.SQS.ConsumerTest do
       attributes: [],
       body: Poison.encode!(%{content: body}),
       md5_of_body: "2d8514fd568c4038110b487bc5cba784",
-      message_attributes: %{
-        "provider" => %{
-          name: "provider",
-          value: "letstalk"
-        },
-        "event" => %{
-          name: "event",
-          value: event
-        },
-        "resource" => %{
-          name: "resource",
-          value: resource
-        }
-      },
+      message_attributes: attributes(resource, event),
       message_id: "8c1c0a71-20d6-4c44-b872-b032f51315d8",
       receipt_handle: "some long bullshit"
+    }
+  end
+
+  defp attributes(resource, event) do
+    %{
+      "provider" => %{
+        name: "provider",
+        value: "letstalk"
+      },
+      "event" => %{
+        name: "event",
+        value: event
+      },
+      "resource" => %{
+        name: "resource",
+        value: resource
+      }
     }
   end
 end
