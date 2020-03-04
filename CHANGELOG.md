@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-## [unreleased]
+## Release [3.0.0] - 04.03.2020
 ### Added
 - New message attribute `Type` to handle.
 ### Changed
