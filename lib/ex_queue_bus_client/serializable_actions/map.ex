@@ -47,5 +47,9 @@ defimpl ExQueueBusClient.SerializableAction, for: Map do
     %{name: "resource", data_type: :string, value: value}
   end
 
+  defp parse_attribute({:type, value}) do
+    %{name: "type", data_type: :string, value: value}
+  end
+
   defp parse_attribute(_), do: nil
 end
